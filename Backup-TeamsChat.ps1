@@ -152,8 +152,6 @@ function Get-Chats {
         [Parameter(mandatory = $true)][string]$rootDirectory
     )
 
-    Write-Host $userObject
-
     Write-Host "Processing User: $($userObject.displayName) - $($userObject.userPrincipalName)" -ForegroundColor Yellow
 
     # Create Chat directory for user
