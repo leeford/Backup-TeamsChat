@@ -12,8 +12,6 @@
 
     This tool has been written for PowerShell "Core" on Windows, Mac and Linux - it will not work with "Windows PowerShell".
 
-    Note: A predefined Azure AD application has been used, but you can use your own with the same scope.
-
 .LINK
     Blog: https://www.lee-ford.co.uk
     Twitter: http://www.twitter.com/lee_ford
@@ -21,7 +19,7 @@
  
 .EXAMPLE 
     
-    To backup your chat messages:
+    To backup all chat messages for tenant:
     Backup-TeamsChat.ps1 -Path <directory to store backup>
 
 #>
@@ -150,14 +148,16 @@ function Get-ApplicationToken {
 
 function Get-Chats {
     param (
-        [Parameter(mandatory = $true)][object]$user,
+        [Parameter(mandatory = $true)][object]$userObject,
         [Parameter(mandatory = $true)][string]$rootDirectory
     )
 
-    Write-Host "Processing User: $($user.displayName) - $($user.userPrincipalName)" -ForegroundColor Yellow
+    Write-Host $userObject
+
+    Write-Host "Processing User: $($userObject.displayName) - $($userObject.userPrincipalName)" -ForegroundColor Yellow
 
     # Create Chat directory for user
-    $directory = "$($user.userPrincipalName)" -replace '([\\/:*?"<>|\s])+', "_"
+    $directory = "$($userObject.userPrincipalName)" -replace '([\\/:*?"<>|\s])+', "_"
     $userPath = "$rootDirectory/$directory"
 
     $chatThreads = @()
@@ -165,11 +165,11 @@ function Get-Chats {
         $fromDateTime = (Get-Date).AddDays(-$Days) | Get-Date -AsUTC -Format o
         $toDateTime = (Get-Date).AddDays(+1) | Get-Date -AsUTC -Format o
         Write-Host " - Getting chat messages for last $Days days..." -NoNewline
-        $chatMessages = Invoke-GraphAPICall -URI "https://graph.microsoft.com/beta/users/$($user.id)/chats/getAllMessages?`$filter=lastModifiedDateTime gt $fromDateTime and lastModifiedDateTime lt $toDateTime" -Method "GET" -WriteStatus
+        $chatMessages = Invoke-GraphAPICall -URI "https://graph.microsoft.com/beta/users/$($userObject.id)/chats/getAllMessages?`$filter=lastModifiedDateTime gt $fromDateTime and lastModifiedDateTime lt $toDateTime" -Method "GET" -WriteStatus
     }
     else {
         Write-Host " - Getting chat messages..." -NoNewline
-        $chatMessages = Invoke-GraphAPICall -URI "https://graph.microsoft.com/beta/users/$($user.id)/chats/getAllMessages" -Method "GET" -WriteStatus
+        $chatMessages = Invoke-GraphAPICall -URI "https://graph.microsoft.com/beta/users/$($userObject.id)/chats/getAllMessages" -Method "GET" -WriteStatus
     }
     # Loop through each chat thread and get messages, members etc
     Write-Host " - Parsing $($chatMessages.value.count) chat messages..."
@@ -271,7 +271,7 @@ function Get-Chats {
             }
 
             # Create HTML output of messages
-            $htmlMessages = Get-HTMLChatMessages -message $chat.messages -user $user
+            $htmlMessages = Get-HTMLChatMessages -message $chat.messages -user $userObject
 
             $html = @"
                 <br />
@@ -346,7 +346,7 @@ function Get-Chats {
             $file = "$($chat.id).htm" -replace '([\\/:*?"<>|\s])+', "_"
             $filePath = "$userPath/chats/$file"
             Write-Host "    - Saving chat to $filePath... " -NoNewline
-            New-HTMLPage -Content $html -PageTitle "$($user.displayName) - $chatTitle" -Path $filePath
+            New-HTMLPage -Content $html -PageTitle "$($userObject.displayName) - $chatTitle" -Path $filePath
 
             # Add to index
             $chatIndexObject = [PSCustomObject]@{
@@ -394,11 +394,11 @@ function Get-Chats {
 
         $filePath = "$userPath/index.htm"
         Write-Host "    - Saving chat index to $filePath... " -NoNewline
-        New-HTMLPage -Content $html -PageTitle "Chats: $($user.displayName)" -Path $filePath
+        New-HTMLPage -Content $html -PageTitle "Chats: $($userObject.displayName)" -Path $filePath
 
         # Return user object
         return [PSCustomObject]@{
-            displayName = $user.displayName
+            displayName = $userObject.displayName
             totalChats  = $chatIndex.count
             link        = "$directory/index.htm"
         }
@@ -530,8 +530,8 @@ Write-Host "`n------------------------------------------------------------------
             `n----------------------------------------------------------------------------------------------" -ForegroundColor Yellow
 
 # Check secret modules are installed to store connection details
-Check-ModuleInstalled -module MicrosoftTeams -moduleName "Microsoft.PowerShell.SecretManagement"
-Check-ModuleInstalled -module MicrosoftTeams -moduleName "Microsoft.PowerShell.SecretStore"
+Check-ModuleInstalled -module Microsoft.PowerShell.SecretManagement -moduleName "Microsoft PowerShell SecretManagement"
+Check-ModuleInstalled -module Microsoft.PowerShell.SecretStore -moduleName "Microsoft PowerShell SecretStore"
 
 # Create vault script (if required)
 Write-Host "Creating secret vault..." -NoNewline
@@ -588,13 +588,13 @@ New-Item -Path $rootDirectory -ItemType Directory -ErrorAction SilentlyContinue 
 $userOutput = @()
 if ($user) {
     $userResponse = Invoke-GraphAPICall "https://graph.microsoft.com/v1.0/users/$($user)?`$select=displayName,userPrincipalName,id"
-    $userOutput += Get-Chats -user $userResponse -rootDirectory $rootDirectory
+    $userOutput += Get-Chats -userObject $userResponse -rootDirectory $rootDirectory
 }
 else {
     # All users
     $usersResponse = Invoke-GraphAPICall "https://graph.microsoft.com/v1.0/users?`$select=displayName,userPrincipalName,id"
-    foreach ($user in $usersResponse.value) {
-        $userOutput += Get-Chats -user $user -rootDirectory $rootDirectory
+    foreach ($userObject in $usersResponse.value) {
+        $userOutput += Get-Chats -UserObject $userObject -rootDirectory $rootDirectory
     }
 }
 
@@ -614,11 +614,11 @@ if ($userOutput.count -gt 0) {
         </thead>
         <tbody>
             $(
-                foreach($user in $userOutput | Sort-Object -Property displayName) {
+                foreach($userObject in $userOutput | Sort-Object -Property displayName) {
                     @"
                     <tr>
-                        <td><a href="$($user.link)">$($user.displayName)</a></td>
-                        <td>$($user.totalChats)</td>
+                        <td><a href="$($userObject.link)">$($userObject.displayName)</a></td>
+                        <td>$($userObject.totalChats)</td>
                     </tr>
 "@
                 }
