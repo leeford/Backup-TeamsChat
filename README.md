@@ -43,12 +43,24 @@ To connect to Microsoft Graph API, you will need to use an Azure AD App registra
 ### Teams Protected APIs
 As mentioned above, you will need to request access to the Teams Protected APIs. This is acheived by filling in this [form](https://aka.ms/teamsgraph/requestaccess) with details of your Azure AD App registration and why you require access. It can take around a week to hear back.
 
+### PowerShell Modules
+Two modules are required to store secrets about your Azure AD App safely. Run the following:
+
+```pwsh
+Install-Module -Name Microsoft.PowerShell.SecretManagement  
+Install-Module -Name Microsoft.PowerShell.SecretStore
+```
+
 ## Usage
 With the Azure AD App registration created and the Teams Protected APIs granted to it, it is now possible to use the tool.
 
 Firstly, download the latest release (2.0+) at https://github.com/leeford/Backup-TeamsChat/releases
 
-You can then run the .ps1 file from a PowerShell _Core_ prompt:
+You can then run the .ps1 file from a PowerShell _Core_ prompt. If it is the first time running it, it will create a secret vault called **Backup-TeamsChat**. Within this secret vault it will securely store your Azure AD App registration details (client ID, tenant ID and client secret):
+
+![image](https://user-images.githubusercontent.com/472320/123989672-0625fb00-d9c1-11eb-8bca-5658608f7819.png)
+
+> Each time you run the tool, you will need to enter the password you used when creating the secret vault.
 
 * Backup all chat messages for all users in tenant:
 ```pwsh
