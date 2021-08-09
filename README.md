@@ -54,9 +54,13 @@ Install-Module -Name Microsoft.PowerShell.SecretStore
 ## Usage
 With the Azure AD App registration created and the Teams Protected APIs granted to it, it is now possible to use the tool.
 
-Firstly, download the latest release (2.0+) at https://github.com/leeford/Backup-TeamsChat/releases
+Firstly, download the latest release (2.0+) at https://github.com/leeford/Backup-TeamsChat/releases and extract it to a folder. Navigate to the folder.
 
-You can then run the .ps1 file from a PowerShell _Core_ prompt. If it is the first time running it, it will create a secret vault called **Backup-TeamsChat**. Within this secret vault it will securely store your Azure AD App registration details (client ID, tenant ID and client secret):
+If you are using **Windows**, you may need to un-block the `Backup-TeamsChat.ps1` file if it is blocked
+
+  ![image](https://user-images.githubusercontent.com/472320/128699245-55910e7c-ac5c-40e8-9969-680da34548f6.png)
+
+You can then run the `Backup-TeamsChat.ps1` file from a PowerShell _Core_ prompt. If it is the first time running it, it will create a secret vault called **Backup-TeamsChat**. Within this secret vault it will securely store your Azure AD App registration details (client ID, tenant ID and client secret):
 
 ![image](https://user-images.githubusercontent.com/472320/123989672-0625fb00-d9c1-11eb-8bca-5658608f7819.png)
 
