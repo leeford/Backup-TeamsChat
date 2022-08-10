@@ -27,7 +27,8 @@
 Param (
     [Parameter(mandatory = $true)][string]$Path,
     [Parameter(mandatory = $false)][int]$Days,
-    [Parameter(mandatory = $false)][string]$User
+    [Parameter(mandatory = $false)][string]$User,
+    [Parameter(mandatory = $false)][ValidateSet('A', 'B')]$LicensingModel
 )
 
 function Check-ModuleInstalled {
@@ -77,7 +78,6 @@ function Invoke-GraphAPICall {
         # API Call
         try {
             $response = Invoke-RestMethod -Method $method -Uri $currentUri -ContentType "application/json" -Headers $headers -Body $body -ResponseHeadersVariable script:responseHeaders
-
             if ($response) {
                 # Check if any data is left
                 if ($response.'@odata.count' -gt 0) {
@@ -93,6 +93,7 @@ function Invoke-GraphAPICall {
             }
         }
         catch {
+            Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
             if (($_.Exception.Response.StatusCode -eq 403) -or ($retryCount -ge $maxRetries)) {
                 # Max retries reached or forbidden
                 $errorMessage = $_.ErrorDetails.Message | ConvertFrom-Json
@@ -158,17 +159,27 @@ function Get-Chats {
     $directory = "$($userObject.userPrincipalName)" -replace '([\\/:*?"<>|\s])+', "_"
     $userPath = "$rootDirectory/$directory"
 
+    # Query Params
+    $queryParams = @();
+
+    # Add licensing model query if specified
+    if ($LicensingModel) {
+        $queryParams += "model=$($LicensingModel)"
+    }
+
     $chatThreads = @()
     if ($Days) {
         $fromDateTime = (Get-Date).AddDays(-$Days) | Get-Date -AsUTC -Format o
         $toDateTime = (Get-Date).AddDays(+1) | Get-Date -AsUTC -Format o
         Write-Host " - Getting chat messages for last $Days days..." -NoNewline
-        $chatMessages = Invoke-GraphAPICall -URI "https://graph.microsoft.com/beta/users/$($userObject.id)/chats/getAllMessages?`$filter=lastModifiedDateTime gt $fromDateTime and lastModifiedDateTime lt $toDateTime" -Method "GET" -WriteStatus
+        $queryParams += "`$filter=lastModifiedDateTime gt $fromDateTime and lastModifiedDateTime lt $toDateTime"
     }
     else {
         Write-Host " - Getting chat messages..." -NoNewline
-        $chatMessages = Invoke-GraphAPICall -URI "https://graph.microsoft.com/beta/users/$($userObject.id)/chats/getAllMessages" -Method "GET" -WriteStatus
     }
+    # Build query string
+    $queryString = "?" + ($queryParams -join "&")
+    $chatMessages = Invoke-GraphAPICall -URI "https://graph.microsoft.com/v1.0/users/$($userObject.id)/chats/getAllMessages$($queryString)" -Method "GET" -WriteStatus
     # Loop through each chat thread and get messages, members etc
     Write-Host " - Parsing $($chatMessages.value.count) chat messages..."
     foreach ($chatMessage in $chatMessages.value) {
