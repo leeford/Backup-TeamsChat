@@ -33,7 +33,7 @@ As mentioned above, you will need to request access to the Teams Protected APIs.
 
 ### PowerShell
 
-You need to ensure you have PowerShell _Core_ (6+) installed. **This tool will not work with Windows PowerShell (5.1)**.
+You need to ensure you have PowerShell _Core_ (7+) installed. **This tool will NOT work with Windows PowerShell (5.1)**.
 
 ### Azure AD App registration
 
@@ -47,12 +47,14 @@ To connect to Microsoft Graph API, you will need to use an Azure AD App registra
 ![image](https://user-images.githubusercontent.com/472320/123975945-a83fe600-d9b5-11eb-9761-bc00a2ffe15d.png)
 ![image](https://user-images.githubusercontent.com/472320/123976051-bee63d00-d9b5-11eb-9c99-6653e7c34df3.png)
 4. Under **API Permissions**, add the following **Microsoft Graph** permissions:
+
   | Permission | Type | Description |
   | ---- | ---- | ---- |
   | Chat.Read.All | Application | Read all chat messages |
   | Channel.ReadBasic.All | Application | Read the names and descriptions of Teams channels|
   | Team.ReadBasic.All | Application | Read the names and descriptions of Teams |
   | User.Read.All | Application | Read all users profiles |
+  
 5. With the permissions added, you will need to **Grant admin consent**. It should look like the following:
 ![image](https://user-images.githubusercontent.com/472320/123975328-264fbd00-d9b5-11eb-9c05-f1e4de29884a.png)
 6. That is the App registration configured
@@ -70,7 +72,7 @@ Install-Module -Name Microsoft.PowerShell.SecretStore
 
 With the Azure AD App registration created and the Teams Protected APIs granted to it, it is now possible to use the tool.
 
-Firstly, download the latest release (2.0+) at <https://github.com/leeford/Backup-TeamsChat/releases> and extract it to a folder. Navigate to the folder.
+Firstly, download the latest release at <https://github.com/leeford/Backup-TeamsChat/releases> and extract it to a folder. Navigate to the folder.
 
 If you are using **Windows**, you may need to un-block the `Backup-TeamsChat.ps1` file if it is blocked
 
