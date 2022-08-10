@@ -1,5 +1,7 @@
 # Backup-TeamsChat
 
+![image](https://user-images.githubusercontent.com/472320/123978679-f950d980-d9b7-11eb-9dba-fdc8cd75e9cf.png)
+
 > **Disclaimer:** This tool is provided ‘as-is’ without any warranty or support. Use of this tool is at your own risk and I accept no responsibility for any damage caused.
 
 Backup Teams chat messages (not standard Team channel messages) for safe keeping - messages are saved in to a HTML report for easy viewing. Written in PowerShell Core and using Graph API, it can be used on Windows, Mac and Linux.
